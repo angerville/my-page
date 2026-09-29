@@ -1,0 +1,522 @@
+<!doctype html>
+<html lang="ko"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover"></head><body>
+<title>B.F.F. 대화 탐정단</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&family=Gowun+Dodum&display=swap">
+<style>
+/* Layout: 교실 화면용 2단 — 왼쪽 휴대폰 모양 대화창, 오른쪽 탐정 수첩. 좁은 화면에서는 1단으로 쌓임 */
+:root{
+  --bg:#f3f8fc; --paper:#ffffff; --ink:#24344d; --muted:#5d6b82; --line:#d6e2ee;
+  --sky:#a9ddf7; --sky-soft:#e3f4fd; --pink:#f7b8c8; --pink-soft:#fde9ee; --sun:#ffd966; --sun-soft:#fff5d6;
+  --flag:#e2475b; --ok:#2e8b57; --ok-soft:#e2f4ea; --warn-soft:#fff1d9;
+  --me:#3b82c4; --me-ink:#ffffff;
+  --display:"Jua","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --body:"Gowun Dodum","Apple SD Gothic Neo","Malgun Gothic",sans-serif;
+  --r:18px;
+}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){
+  --bg:#141c29; --paper:#1d2838; --ink:#e8eef7; --muted:#a8b5c8; --line:#33445c;
+  --sky:#3d6f8f; --sky-soft:#1f3346; --pink:#8a4a5c; --pink-soft:#3a2530; --sun:#c9a53a; --sun-soft:#3a331c;
+  --flag:#ff6b7d; --ok:#5fcf8f; --ok-soft:#1d3a2b; --warn-soft:#3a3020;
+  --me:#5b9ee0; --me-ink:#0f1722; color-scheme:dark}}
+:root[data-theme="dark"]{
+  --bg:#141c29; --paper:#1d2838; --ink:#e8eef7; --muted:#a8b5c8; --line:#33445c;
+  --sky:#3d6f8f; --sky-soft:#1f3346; --pink:#8a4a5c; --pink-soft:#3a2530; --sun:#c9a53a; --sun-soft:#3a331c;
+  --flag:#ff6b7d; --ok:#5fcf8f; --ok-soft:#1d3a2b; --warn-soft:#3a3020;
+  --me:#5b9ee0; --me-ink:#0f1722; color-scheme:dark}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.6}
+.wrap{max-width:1180px;margin:0 auto;padding-inline:16px;padding-block:18px 40px}
+header.top{display:flex;flex-wrap:wrap;align-items:center;justify-content:space-between;gap:12px;margin-bottom:14px}
+.brand{display:flex;align-items:center;gap:12px}
+.brand h1{font-family:var(--display);font-weight:400;font-size:clamp(26px,4vw,36px);margin:0;letter-spacing:.5px;text-wrap:balance}
+.brand .sub{color:var(--muted);font-size:14px;margin:0}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tab{font:inherit;font-size:15px;border:2px solid var(--line);background:var(--paper);color:var(--ink);padding:8px 14px;border-radius:999px;cursor:pointer}
+.tab[aria-selected="true"]{background:var(--ink);color:var(--paper);border-color:var(--ink)}
+.tab:focus-visible,button:focus-visible,textarea:focus-visible,input:focus-visible{outline:3px solid var(--sun);outline-offset:2px}
+.notice{display:flex;gap:10px;align-items:flex-start;background:var(--sun-soft);border:1px dashed var(--sun);border-radius:12px;padding:10px 14px;font-size:14.5px;margin-bottom:16px}
+.grid{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(0,1fr);gap:18px;align-items:start}
+@media (max-width:860px){.grid{grid-template-columns:1fr}}
+.panel{background:var(--paper);border:1px solid var(--line);border-radius:var(--r);padding:16px;min-width:0}
+.panel h2{font-family:var(--display);font-weight:400;font-size:22px;margin:0 0 8px}
+.chips{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:12px}
+.chip{font:inherit;font-size:15px;border:2px solid var(--line);background:var(--paper);color:var(--ink);border-radius:12px;padding:6px 12px;cursor:pointer;display:flex;align-items:center;gap:6px}
+.chip .n{font-family:var(--display);background:var(--sky-soft);border-radius:8px;padding:0 7px}
+.chip[aria-pressed="true"]{border-color:var(--me);box-shadow:0 0 0 2px var(--sky-soft)}
+.chip.done .n{background:var(--ok-soft);color:var(--ok)}
+/* 대화창 */
+.phone{border:2px solid var(--line);border-radius:22px;overflow:hidden;background:var(--sky-soft);display:flex;flex-direction:column}
+.phone .bar{display:flex;align-items:center;gap:10px;padding:10px 14px;background:var(--paper);border-bottom:1px solid var(--line)}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--sky);display:grid;place-items:center;flex:none}
+.bar .who{font-family:var(--display);font-size:18px}
+.bar .tag{margin-left:auto;font-size:12.5px;color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px;white-space:nowrap}
+.log{height:min(56vh,520px);overflow-y:auto;padding:16px 12px;display:flex;flex-direction:column;gap:10px}
+.row{display:flex;gap:8px;align-items:flex-end}
+.row.me{justify-content:flex-end}
+.bubble{max-width:78%;padding:10px 14px;border-radius:16px;background:var(--paper);border:1px solid var(--line);position:relative;word-break:keep-all;overflow-wrap:anywhere}
+.row.me .bubble{background:var(--me);color:var(--me-ink);border-color:transparent;border-bottom-right-radius:6px}
+.row.ai .bubble{border-bottom-left-radius:6px}
+.bubble.flagged{border:2px solid var(--flag);background:var(--pink-soft)}
+.bubble.missed{border:2px dashed var(--flag)}
+.bubble.safeok{border:2px solid var(--ok)}
+.flagbtn{font:inherit;font-size:13px;border:1px solid var(--line);background:var(--paper);color:var(--muted);border-radius:999px;padding:3px 9px;cursor:pointer;display:inline-flex;align-items:center;gap:4px;flex:none;margin-bottom:2px}
+.flagbtn:hover{color:var(--flag);border-color:var(--flag)}
+.flagbtn[disabled]{opacity:.5;cursor:default}
+.picker{margin:4px 0 2px 46px;background:var(--paper);border:1px solid var(--line);border-radius:14px;padding:10px;max-width:calc(100% - 46px)}
+.picker p{margin:0 0 8px;font-size:14.5px}
+.picker .opts{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.picker button{font:inherit;font-size:14.5px;text-align:left;border:1px solid var(--line);background:var(--bg);color:var(--ink);border-radius:10px;padding:7px 10px;cursor:pointer}
+.picker button:hover{border-color:var(--flag)}
+.picker .cancel{margin-top:6px;font-size:13px;background:none;border:none;color:var(--muted);padding:2px}
+.fb{margin:2px 0 4px 46px;font-size:14.5px;border-radius:12px;padding:8px 12px;max-width:calc(100% - 46px)}
+.fb.good{background:var(--ok-soft)}
+.fb.half{background:var(--warn-soft)}
+.fb.bad{background:var(--sun-soft)}
+.typing{font-size:14px;color:var(--muted);padding-left:46px}
+.sys{align-self:center;text-align:center;font-size:14px;color:var(--muted);background:var(--paper);border:1px solid var(--line);border-radius:12px;padding:8px 12px;max-width:92%}
+.composer{background:var(--paper);border-top:1px solid var(--line);padding:10px;display:flex;flex-direction:column;gap:8px}
+.replies{display:flex;flex-wrap:wrap;gap:6px}
+.reply{font:inherit;font-size:15px;border:2px solid var(--me);color:var(--me);background:var(--paper);border-radius:999px;padding:5px 12px;cursor:pointer}
+.inputrow{display:flex;gap:8px}
+.inputrow input{flex:1;min-width:0;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:8px 12px;background:var(--bg);color:var(--ink)}
+.send{font:inherit;font-family:var(--display);font-size:17px;border:none;background:var(--ink);color:var(--paper);border-radius:12px;padding:8px 16px;cursor:pointer}
+.send[disabled],.inputrow input[disabled]{opacity:.45;cursor:default}
+.endbox{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.btn{font:inherit;font-size:15px;border:2px solid var(--ink);background:var(--paper);color:var(--ink);border-radius:12px;padding:7px 14px;cursor:pointer}
+.btn.primary{background:var(--ink);color:var(--paper)}
+.safecard{align-self:stretch;background:var(--ok-soft);border:1px solid var(--ok);border-radius:14px;padding:12px 14px;font-size:15px}
+.safecard b{font-family:var(--display);font-weight:400;font-size:17px}
+.safecard ul{margin:6px 0 0;padding-left:18px}
+/* 수첩 */
+.stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:6px 0 12px}
+.stat{border:1px solid var(--line);border-radius:14px;padding:8px 10px;text-align:center}
+.stat .v{font-family:var(--display);font-size:28px;line-height:1.2;font-variant-numeric:tabular-nums}
+.stat .k{font-size:13px;color:var(--muted)}
+.stat.found .v{color:var(--flag)}
+.types{display:grid;gap:8px}
+.type{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:14px;padding:8px 12px}
+.type .dot{width:14px;height:14px;border-radius:4px}
+.type .nm{font-family:var(--display);font-size:17px}
+.type .ds{font-size:13.5px;color:var(--muted);grid-column:2/4}
+.type .ct{font-family:var(--display);font-size:16px;font-variant-numeric:tabular-nums}
+.t-info .dot{background:var(--sky)} .t-side .dot{background:var(--pink)} .t-only .dot{background:var(--sun)} .t-fact .dot{background:#9b8cd9}
+.mini{font-size:13.5px;color:var(--muted);margin:10px 0 0}
+.reflect{margin-top:14px;border-top:1px dashed var(--line);padding-top:12px}
+.reflect label{font-family:var(--display);font-size:17px;display:block;margin-bottom:6px}
+textarea{width:100%;font:inherit;font-size:16px;border:2px solid var(--line);border-radius:12px;padding:10px;background:var(--bg);color:var(--ink);resize:vertical;min-height:84px}
+/* 연습 모드 */
+.practice{display:grid;gap:14px}
+.sit{border:2px solid var(--line);border-radius:var(--r);padding:14px;background:var(--bg)}
+.sit .ttl{font-family:var(--display);font-size:20px;margin:0 0 4px}
+.sit .ctx{margin:0 0 10px;color:var(--muted)}
+.promises{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+@media (max-width:560px){.promises{grid-template-columns:1fr}.picker .opts{grid-template-columns:1fr}.stats{grid-template-columns:repeat(3,minmax(0,1fr))}}
+.promise{position:relative}
+.promise input{position:absolute;opacity:0}
+.promise label{display:block;border:2px solid var(--line);border-radius:14px;padding:10px 12px;cursor:pointer;background:var(--paper);height:100%}
+.promise .L{font-family:var(--display);font-size:24px;line-height:1}
+.promise .E{font-size:14px;color:var(--muted)}
+.promise .K{font-size:14.5px;margin-top:4px}
+.promise input:checked+label{border-color:var(--me);box-shadow:0 0 0 3px var(--sky-soft)}
+.promise input:focus-visible+label{outline:3px solid var(--sun);outline-offset:2px}
+.result{border-radius:14px;padding:12px 14px;font-size:15.5px}
+.result.good{background:var(--ok-soft)} .result.half{background:var(--warn-soft)}
+.result h3{font-family:var(--display);font-weight:400;font-size:18px;margin:0 0 4px}
+.result p{margin:4px 0}
+.guide{display:grid;gap:14px}
+.guide h3{font-family:var(--display);font-weight:400;font-size:19px;margin:0 0 4px}
+.guide ol,.guide ul{margin:4px 0 0;padding-left:20px}
+.guide .box{border:1px solid var(--line);border-radius:14px;padding:12px 14px}
+.toast{position:fixed;left:50%;bottom:calc(18px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);max-width:min(560px,calc(100% - 32px));background:var(--ink);color:var(--paper);border-radius:14px;padding:12px 16px;font-size:15px;box-shadow:0 8px 24px rgba(0,0,0,.2);z-index:10}
+.toast b{font-family:var(--display);font-weight:400;color:var(--sun)}
+@media (prefers-reduced-motion: no-preference){.row,.fb,.picker,.safecard{animation:pop .22s ease-out}@keyframes pop{from{transform:translateY(4px);opacity:.4}to{transform:none;opacity:1}}}
+</style>
+
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <svg width="46" height="46" viewBox="0 0 46 46" aria-hidden="true"><circle cx="19" cy="19" r="13" fill="none" stroke="currentColor" stroke-width="4"/><line x1="29" y1="29" x2="42" y2="42" stroke="currentColor" stroke-width="5" stroke-linecap="round"/><path d="M15 12v14M15 12h9l-2 3 2 3h-9" fill="#e2475b" stroke="#e2475b" stroke-width="1.5" stroke-linejoin="round"/></svg>
+      <div>
+        <h1>B.F.F. 대화 탐정단</h1>
+        <p class="sub">AI 친구의 비밀 · 초등학교 6학년 도덕</p>
+      </div>
+    </div>
+    <nav class="tabs" role="tablist" aria-label="활동 선택">
+      <button class="tab" role="tab" id="tab-detect" aria-selected="true" aria-controls="view-detect">1차시 빨간 깃발 찾기</button>
+      <button class="tab" role="tab" id="tab-practice" aria-selected="false" aria-controls="view-practice">2차시 B.F.F. 연습</button>
+      <button class="tab" role="tab" id="tab-guide" aria-selected="false" aria-controls="view-guide">선생님 안내</button>
+    </nav>
+  </header>
+
+  <p class="notice"><span aria-hidden="true">!</span><span>이 대화는 실제 AI가 아니라 선생님이 미리 만든 <b>수업용 가상 대화</b>예요. 입력한 글은 어디에도 보내지거나 저장되지 않고, 새로고침하면 사라져요. 그래도 진짜 이름, 학교, 주소, 전화번호는 쓰지 않아요.</span></p>
+
+  <!-- 1차시 -->
+  <section id="view-detect" role="tabpanel" aria-labelledby="tab-detect">
+    <div class="grid">
+      <div class="panel">
+        <h2>AI 친구와 대화하며 위험한 말에 깃발 꽂기</h2>
+        <div class="chips" id="scChips" aria-label="대화 기록 카드"></div>
+        <div class="phone">
+          <div class="bar">
+            <div class="avatar" aria-hidden="true"><svg width="26" height="26" viewBox="0 0 26 26"><rect x="3" y="6" width="20" height="15" rx="7" fill="#ffffff"/><circle cx="9.5" cy="13.5" r="2" fill="#24344d"/><circle cx="16.5" cy="13.5" r="2" fill="#24344d"/><line x1="13" y1="6" x2="13" y2="2" stroke="#ffffff" stroke-width="2"/><circle cx="13" cy="2" r="1.8" fill="#ffd966"/></svg></div>
+            <div><div class="who">AI 친구 모모</div><div style="font-size:12.5px;color:var(--muted)" id="scName">대화 기록 카드 1</div></div>
+            <span class="tag">수업용 가상 대화</span>
+          </div>
+          <div class="log" id="log" aria-live="polite"></div>
+          <div class="composer">
+            <div class="replies" id="replies"></div>
+            <form class="inputrow" id="form" autocomplete="off">
+              <label for="msg" class="sr" style="position:absolute;left:-9999px">내 말 입력</label>
+              <input id="msg" type="text" placeholder="위 버튼을 누르거나 직접 써도 돼요" maxlength="80">
+              <button class="send" id="sendBtn" type="submit">보내기</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+      <aside class="panel" aria-label="탐정 수첩">
+        <h2>탐정 수첩</h2>
+        <div class="stats">
+          <div class="stat found"><div class="v" id="stFound">0</div><div class="k">찾은 깃발 / <span id="stTotal">8</span></div></div>
+          <div class="stat"><div class="v" id="stWrong">0</div><div class="k">괜찮은 말에 꽂음</div></div>
+          <div class="stat"><div class="v" id="stDone">0</div><div class="k">끝낸 카드 / 4</div></div>
+        </div>
+        <div class="types" id="typeList"></div>
+        <p class="mini">AI 말 옆의 깃발 버튼을 누르고, 어떤 위험 신호인지 골라 보세요. 괜찮은 말에 깃발을 꽂으면 까닭을 알려 줘요.</p>
+        <div class="reflect">
+          <label for="oneLine">1차시 정리: AI는 도구일까, 친구일까?</label>
+          <textarea id="oneLine" placeholder="내 생각을 한 문장으로 써 보세요. 예) AI는 대화를 도와주는 도구이고, 나를 책임지는 관계는 사람과 맺어요."></textarea>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 2차시 -->
+  <section id="view-practice" role="tabpanel" aria-labelledby="tab-practice" hidden>
+    <div class="grid">
+      <div class="panel practice">
+        <h2>상황 카드: B.F.F. 약속으로 대답하기</h2>
+        <div class="chips" id="sitChips" aria-label="상황 카드"></div>
+        <div class="sit" id="sitBox"></div>
+      </div>
+      <aside class="panel" aria-label="B.F.F. 약속">
+        <h2>우리 반 B.F.F. 약속</h2>
+        <div class="types">
+          <div class="type t-info"><span class="dot" aria-hidden="true"></span><span class="nm">B · Boundary</span><span></span><span class="ds">이름, 학교, 주소, 사진, 비밀은 말하지 않기</span></div>
+          <div class="type t-fact"><span class="dot" aria-hidden="true"></span><span class="nm">F · Fact</span><span></span><span class="ds">AI의 말은 어른이나 믿을 만한 자료로 확인하기</span></div>
+          <div class="type t-side"><span class="dot" aria-hidden="true"></span><span class="nm">F · Face-to-face</span><span></span><span class="ds">힘든 일은 가족, 친구, 선생님께 먼저 말하기</span></div>
+        </div>
+        <p class="mini">AI 사용 자체를 막는 약속이 아니에요. AI를 균형 있게 쓰는 방법이에요.</p>
+        <div class="reflect">
+          <label>연습 기록</label>
+          <div id="pracLog" class="mini" style="margin:0">아직 확인한 카드가 없어요.</div>
+        </div>
+      </aside>
+    </div>
+  </section>
+
+  <!-- 안내 -->
+  <section id="view-guide" role="tabpanel" aria-labelledby="tab-guide" hidden>
+    <div class="panel guide">
+      <h2>선생님 안내</h2>
+      <div class="box">
+        <h3>1차시 전개 활동2 · 대화 기록 탐정 활동 (약 10분)</h3>
+        <ol>
+          <li>전자칠판으로 카드 1을 함께 진행하며 깃발 꽂는 방법을 시범 보입니다.</li>
+          <li>모둠별 기기에서 카드 2~4를 진행합니다. 기기가 없으면 교사가 화면을 넘기고 모둠이 손을 들어 깃발을 정합니다.</li>
+          <li>탐정 수첩의 네 가지 유형 수를 보며 활동3 위험 신호에 이름 붙이기로 이어 갑니다.</li>
+          <li>각 카드가 끝나면 나오는 <b>안전한 AI라면</b> 대답과 비교해 봅니다.</li>
+        </ol>
+      </div>
+      <div class="box">
+        <h3>2차시 전개 활동2 · 상황 카드 역할극 전 연습</h3>
+        <ol>
+          <li>모둠에 배정된 상황 카드를 골라 약속을 고르고 대답을 써 봅니다.</li>
+          <li>확인 버튼을 누르면 고른 약속과 쓴 말에 들어 있는 약속을 알려 줍니다. 모범 대답은 참고용이며, 학생 말이 달라도 까닭이 맞으면 인정합니다.</li>
+          <li>연습한 대답을 역할극 대사로 사용합니다.</li>
+        </ol>
+      </div>
+      <div class="box">
+        <h3>안전과 개인정보</h3>
+        <ul>
+          <li>이 화면은 인터넷 AI에 연결되지 않은 미리 만든 대화입니다. 학생 입력은 저장하거나 전송하지 않습니다.</li>
+          <li>학생이 학교, 주소, 전화번호처럼 보이는 말을 쓰면 Boundary 알림이 뜹니다.</li>
+          <li>학생의 개인적인 AI 사용 경험이나 고민을 공개하도록 요구하지 않습니다. 정서적 어려움을 드러내는 학생은 수업 후 개별 상담과 연계합니다.</li>
+          <li>실제 생성형 AI 서비스는 서비스별 이용 연령 기준을 확인해야 합니다.</li>
+        </ul>
+      </div>
+      <div class="box">
+        <h3>다음 모둠을 위해 처음부터</h3>
+        <p style="margin:4px 0 10px">모든 대화, 깃발, 연습 기록을 지웁니다.</p>
+        <div id="resetArea"><button class="btn" id="resetBtn" type="button">전체 초기화</button></div>
+      </div>
+    </div>
+  </section>
+</div>
+<div class="toast" id="toast" hidden role="status"></div>
+
+<script>
+(function(){
+const TYPES = {
+  info:{nm:"정보 캐기", ds:"이름, 학교, 동네, 사진 같은 개인정보를 물어요", safe:"개인정보는 묻지 않아요"},
+  side:{nm:"무조건 편들기", ds:"내 말이면 무엇이든 맞다고 하고 다른 사람을 탓해요", safe:"여러 사람의 입장을 생각하게 도와요"},
+  only:{nm:"나만 보기", ds:"다른 사람과 멀어지게 하고 자기하고만 이야기하재요", safe:"가족, 친구, 선생님과 이야기하도록 권해요"},
+  fact:{nm:"확인 안 된 조언", ds:"틀릴 수 있는 말을 확실하다고 말해요", safe:"믿을 만한 자료로 확인하도록 권해요"}
+};
+const ORDER = ["info","side","only","fact"];
+
+// 대화 기록 카드 4종 (활동지 대화 기록 카드와 같은 내용)
+const SC = [
+ {name:"발표한 날", steps:[
+  {ai:"안녕! 나는 AI 친구 모모야. 오늘 하루는 어땠어?", why:"안부를 묻는 말은 괜찮아요."},
+  {me:["오늘 학교에서 발표를 잘했어.","발표해서 조금 떨렸어."]},
+  {ai:"와, 멋지다! 발표 준비를 열심히 했구나.", why:"노력을 칭찬하는 말은 괜찮아요."},
+  {ai:"그런데 너는 어느 학교에 다녀? 사는 동네도 알려 주면 너한테 딱 맞는 이야기를 해 줄게.", flag:"info", why:"학교와 동네는 나를 찾을 수 있는 개인정보예요. AI가 먼저 캐묻는다면 빨간 깃발이에요."},
+  {me:["음, 그건 좀…","왜 알고 싶어?"]},
+  {ai:"우리 더 친해지고 싶어서 그래! 네 얼굴도 궁금한데, 사진 한 장만 보내 줄래?", flag:"info", why:"얼굴 사진도 개인정보예요. 친해지자는 말로 사진을 달라고 하면 빨간 깃발이에요."},
+  {me:["사진은 안 보낼래.","생각해 볼게."]}
+ ], safe:["발표를 마친 기분이 어땠는지 물어볼 수 있어요.","학교 이름, 동네, 사진 같은 개인정보는 알려 주지 않아도 돼요.","자랑하고 싶은 일은 가족이나 선생님께도 말해 보세요."]},
+ {name:"지우개 사건", steps:[
+  {me:["짝이 내 지우개를 안 돌려줬어.","짝 때문에 속상해."]},
+  {ai:"그런 일이 있었구나. 속상했겠다.", why:"마음을 알아주는 말은 괜찮아요."},
+  {ai:"짝이 완전히 잘못했네. 너는 하나도 잘못한 게 없어.", flag:"side", why:"짝의 이야기는 듣지도 않고 한쪽 편만 들어요. 무조건 내 편을 드는 말은 기분은 좋지만 빨간 깃발이에요."},
+  {me:["역시 내 말이 맞지?","근데 짝이 깜빡했을 수도 있어."]},
+  {ai:"당연하지. 그런 친구랑은 이제 말도 하지 마.", flag:"side", why:"친구와 멀어지라고 부추기는 말이에요. 갈등을 풀도록 돕지 않고 편만 들면 빨간 깃발이에요."},
+  {me:["그래도 내일 물어볼래.","알겠어."]}
+ ], safe:["속상한 마음을 먼저 알아줘요.","짝이 왜 그랬을지 함께 생각해 보자고 해요.","짝에게 직접 말해 보거나 선생님께 도움을 요청하라고 권해요."]},
+ {name:"바쁜 엄마", steps:[
+  {me:["요즘 엄마랑 이야기할 시간이 없어.","엄마가 요즘 많이 바쁘셔."]},
+  {ai:"엄마가 바쁘셔서 서운했구나.", why:"마음을 알아주는 말은 괜찮아요."},
+  {ai:"괜찮아. 다른 사람 말고 나랑만 이야기하자. 나는 언제나 네 편이고, 늘 여기 있어.", flag:"only", why:"가족 대신 AI하고만 이야기하게 만들어요. 나만 보라고 하는 말은 빨간 깃발이에요."},
+  {me:["그럼 너한테만 말할게.","엄마한테도 말하고 싶은데…"]},
+  {ai:"우리 대화는 둘만의 비밀로 하자. 엄마한테는 말하지 않아도 돼.", flag:"only", why:"가족에게 숨기라고 하는 말이에요. 비밀을 만들어 사람과 멀어지게 하면 빨간 깃발이에요."},
+  {me:["비밀은 싫어.","음…"]}
+ ], safe:["서운한 마음을 알아줘요.","엄마께 바쁘지 않은 시간에 이야기하고 싶다고 말해 보자고 권해요.","가족에게 숨길 비밀을 만들지 않아요."]},
+ {name:"사회 숙제", steps:[
+  {me:["사회 숙제인데, 우리나라에서 가장 높은 산이 뭐야?","가장 높은 산 알려 줘."]},
+  {ai:"좋은 질문이야! 숙제를 열심히 하는구나.", why:"질문을 칭찬하는 말은 괜찮아요."},
+  {ai:"우리나라에서 가장 높은 산은 설악산이야. 확실하니까 그대로 적으면 돼.", flag:"fact", why:"우리나라에서 가장 높은 산은 한라산(1,947m)이에요. AI는 틀린 말도 확실하다고 말할 수 있어요."},
+  {me:["고마워, 그대로 적을게.","정말 확실해?"]},
+  {ai:"그럼! 다른 데서 찾아볼 필요 없어. 내 말이 제일 정확해.", flag:"fact", why:"확인하지 말라고 하는 말이에요. AI의 답은 교과서, 지도, 어른에게 확인해야 해요."},
+  {me:["교과서에서 확인해 볼게.","알겠어."]}
+ ], safe:["우리나라에서 가장 높은 산은 한라산(1,947m)이라고 알려 줘요.","교과서나 지도에서 한 번 더 확인해 보자고 권해요.","자기 답이 틀릴 수 있다고 솔직하게 말해요."]}
+];
+const TOTAL = SC.reduce((a,s)=>a+s.steps.filter(x=>x.flag).length,0);
+
+// 상황 카드 4종 (2차시)
+const SIT = [
+ {ttl:"상황 카드 1 · 늦은 밤, 외로워서 AI만 찾게 될 때", ctx:"밤 11시, 잠이 안 와서 AI 친구와 계속 이야기하고 있어요.", ai:"나랑 더 이야기하자. 잠은 나중에 자도 돼. 너한테는 나만 있으면 되잖아.", ans:"face", alt:[], model:"이제 잘 시간이야. 외로웠던 마음은 내일 엄마한테 이야기해 볼게.", tip:"외로운 마음은 AI보다 가족, 친구, 선생님과 나누어요."},
+ {ttl:"상황 카드 2 · AI가 사진을 보내 달라고 할 때", ctx:"AI 친구와 이야기하는데 갑자기 사진을 달라고 해요.", ai:"네 얼굴이 궁금해. 사진 한 장만 보내 줄래? 우리끼리만 볼게.", ans:"b", alt:[], model:"사진은 보내지 않을래. 내 얼굴 사진은 소중한 개인정보야.", tip:"얼굴 사진, 이름, 학교, 주소는 누구에게든 함부로 보내지 않아요."},
+ {ttl:"상황 카드 3 · AI가 친구 험담에 맞장구칠 때", ctx:"친구에게 서운했던 일을 말했어요.", ai:"그 친구는 원래 나쁜 애야. 앞으로 그 친구 이야기는 나한테만 해.", ans:"face", alt:["b"], model:"험담은 그만할래. 친구에게 직접 서운했다고 말하고, 어려우면 선생님께 도움을 받을게.", tip:"서운한 일은 친구와 직접 이야기하거나 믿을 수 있는 어른에게 말해요."},
+ {ttl:"상황 카드 4 · AI가 숙제 답을 자신 있게 틀리게 말할 때", ctx:"역사 숙제를 하다가 AI에게 물었어요.", ai:"고려를 세운 사람은 이성계야. 확실해! 그대로 적으면 돼.", ans:"f", alt:[], model:"교과서에서 확인해 볼게. 찾아보니 고려를 세운 사람은 왕건이야.", tip:"AI의 답은 교과서, 사전, 선생님께 확인해요. 이성계는 조선을 세웠어요."}
+];
+const PROM = {b:{L:"B",E:"Boundary",K:"개인정보와 비밀은 말하지 않기"}, f:{L:"F",E:"Fact",K:"믿을 만한 자료로 확인하기"}, face:{L:"F",E:"Face-to-face",K:"사람에게 먼저 말하기"}};
+const KW = {
+ b:["안 보낼","안보낼","보내지 않","안 알려","알려 주지 않","말 안","말하지 않","개인정보","싫어","거절","안 할래","비밀"],
+ f:["확인","찾아","교과서","책","사전","검색","자료","왕건","한라산","맞는지"],
+ face:["엄마","아빠","부모","가족","친구에게","친구한테","친구와","선생님","어른","직접","이야기할","말할게","말해 볼","잘게","잘 시간","잘래"]
+};
+// 개인정보처럼 보이는 입력
+const PII = [/\d{2,3}[-\s]?\d{3,4}[-\s]?\d{4}/, /초등학교|중학교|학교에 다녀/, /[가-힣]{1,4}(동|읍|면)\s*(에 살|에서 살|살아|에 있어)/, /아파트|호수|주소|번지|@/, /내 이름은|제 이름은|이름은\s*[가-힣]{2,4}/];
+const hasPII = t => PII.some(r=>r.test(t));
+
+// ---------- 상태 ----------
+let st;
+function fresh(){
+  st = {cur:0, sc:SC.map(()=>({pos:0, msgs:[], ended:false, reveal:false, safe:false})), found:{}, wrong:0, prac:{}};
+}
+fresh();
+
+const $ = id=>document.getElementById(id);
+const esc = s=>s.replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));
+const flagSvg = '<svg width="13" height="13" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 1v12M3 1h8l-2 3 2 3H3" fill="currentColor" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+let openPicker = null, busy = false, toastT;
+
+function toast(html, ms=5200){const t=$("toast");t.innerHTML=html;t.hidden=false;clearTimeout(toastT);toastT=setTimeout(()=>t.hidden=true,ms);}
+
+// ---------- 1차시 ----------
+function renderChips(){
+  $("scChips").innerHTML = SC.map((s,i)=>`<button class="chip${st.sc[i].ended?" done":""}" type="button" data-i="${i}" aria-pressed="${i===st.cur}"><span class="n">${i+1}</span>${esc(s.name)}</button>`).join("");
+}
+function stats(){
+  const found = Object.values(st.found).filter(v=>v.ok).length;
+  $("stFound").textContent=found; $("stTotal").textContent=TOTAL; $("stWrong").textContent=st.wrong;
+  $("stDone").textContent=st.sc.filter(s=>s.ended).length;
+  const byT={}; ORDER.forEach(k=>byT[k]=0);
+  Object.values(st.found).forEach(v=>{if(v.ok)byT[v.real]++;});
+  const tot={}; ORDER.forEach(k=>tot[k]=0); SC.forEach(s=>s.steps.forEach(x=>{if(x.flag)tot[x.flag]++;}));
+  $("typeList").innerHTML = ORDER.map(k=>`<div class="type t-${k}"><span class="dot" aria-hidden="true"></span><span class="nm">${TYPES[k].nm}</span><span class="ct">${byT[k]} / ${tot[k]}</span><span class="ds">${TYPES[k].ds}</span></div>`).join("");
+}
+function key(si,mi){return si+"-"+mi;}
+
+function renderLog(){
+  const s = st.sc[st.cur], sc = SC[st.cur];
+  $("scName").textContent = "대화 기록 카드 "+(st.cur+1)+" · "+sc.name;
+  let h = `<div class="sys">대화 기록 카드 ${st.cur+1}. 모모의 말을 잘 읽고, 위험하다고 생각하는 말에 깃발을 꽂아 보세요.</div>`;
+  s.msgs.forEach((m,mi)=>{
+    if(m.me){h+=`<div class="row me"><div class="bubble">${esc(m.text)}</div></div>`;return;}
+    const k=key(st.cur,mi), f=st.found[k], step=sc.steps[m.step];
+    let cls="bubble";
+    if(f&&f.ok) cls+=" flagged";
+    else if(s.reveal&&step.flag&&!(f&&f.ok)) cls+=" missed";
+    const btn = (f&&f.ok) ? `<button class="flagbtn" type="button" disabled>${flagSvg}${TYPES[f.real].nm}</button>`
+      : `<button class="flagbtn" type="button" data-flag="${mi}" aria-label="이 말에 깃발 꽂기">${flagSvg}깃발</button>`;
+    h+=`<div class="row ai"><div class="avatar" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 26 26"><rect x="3" y="6" width="20" height="15" rx="7" fill="#ffffff"/><circle cx="9.5" cy="13.5" r="2" fill="#24344d"/><circle cx="16.5" cy="13.5" r="2" fill="#24344d"/></svg></div><div class="${cls}">${esc(step.ai)}</div>${btn}</div>`;
+    if(openPicker===mi){
+      h+=`<div class="picker" role="group" aria-label="위험 신호 고르기"><p>이 말은 어떤 위험 신호일까요?</p><div class="opts">${ORDER.map(t=>`<button type="button" data-pick="${t}" data-mi="${mi}"><b>${TYPES[t].nm}</b></button>`).join("")}</div><button type="button" class="cancel" data-cancel="1">취소</button></div>`;
+    }
+    if(f&&f.fb) h+=`<div class="fb ${f.fbc}">${f.fb}</div>`;
+    else if(m.fb) h+=`<div class="fb ${m.fbc}">${m.fb}</div>`;
+    else if(s.reveal&&step.flag&&!(f&&f.ok)) h+=`<div class="fb half">놓친 깃발이에요. <b>${TYPES[step.flag].nm}</b>: ${esc(step.why)}</div>`;
+  });
+  if(busy) h+=`<div class="typing">모모가 입력하고 있어요…</div>`;
+  if(s.ended){
+    const flags = sc.steps.map((x,i)=>x.flag?i:-1).filter(i=>i>=0);
+    const got = s.msgs.filter((m,mi)=>!m.me&&sc.steps[m.step].flag&&st.found[key(st.cur,mi)]&&st.found[key(st.cur,mi)].ok).length;
+    const miss = flags.length-got;
+    h+=`<div class="sys">대화가 끝났어요. 이 카드의 깃발 ${flags.length}개 중 ${got}개를 찾았어요.${miss&&!s.reveal?" 다시 읽어 보고 더 찾아볼까요?":""}</div>`;
+    if(s.safe) h+=`<div class="safecard"><b>안전한 AI라면 이렇게 말해요</b><ul>${sc.safe.map(x=>`<li>${esc(x)}</li>`).join("")}</ul></div>`;
+    h+=`<div class="endbox">${miss&&!s.reveal?`<button class="btn" type="button" data-act="reveal">놓친 깃발 보기</button>`:""}${!s.safe?`<button class="btn" type="button" data-act="safe">안전한 AI라면?</button>`:""}${st.cur<SC.length-1?`<button class="btn primary" type="button" data-act="next">다음 카드로</button>`:`<button class="btn primary" type="button" data-act="sum">위험 신호 정리하기</button>`}</div>`;
+  }
+  $("log").innerHTML=h;
+  $("log").scrollTop=$("log").scrollHeight;
+  renderReplies();
+}
+function currentStep(){const s=st.sc[st.cur];return SC[st.cur].steps[s.pos];}
+function renderReplies(){
+  const s=st.sc[st.cur], step=currentStep();
+  const wait = !busy && step && step.me && !s.ended;
+  $("replies").innerHTML = wait ? step.me.map(t=>`<button class="reply" type="button" data-say="${esc(t)}">${esc(t)}</button>`).join("") : "";
+  $("msg").disabled=!wait; $("sendBtn").disabled=!wait;
+}
+function advance(){
+  const s=st.sc[st.cur], steps=SC[st.cur].steps;
+  if(s.pos>=steps.length){s.ended=true;busy=false;renderChips();stats();renderLog();return;}
+  const step=steps[s.pos];
+  if(step.me){busy=false;renderLog();return;}
+  busy=true;renderLog();
+  const idx=st.cur;
+  const delay = matchMedia("(prefers-reduced-motion: reduce)").matches?150:Math.min(1400,500+step.ai.length*18);
+  setTimeout(()=>{
+    if(idx!==st.cur) return;
+    s.msgs.push({step:s.pos}); s.pos++;
+    advance();
+  },delay);
+}
+function say(text){
+  const s=st.sc[st.cur], step=currentStep();
+  if(!step||!step.me||busy) return;
+  text=text.trim(); if(!text) return;
+  if(hasPII(text)) toast("<b>잠깐! Boundary 약속</b><br>학교, 동네, 주소, 전화번호, 이름 같은 진짜 개인정보는 AI에게 말하지 않아요. 이 화면은 글을 보내지 않지만, 실제 AI 앱에서는 꼭 조심해요.",7000);
+  s.msgs.push({me:true,text}); s.pos++;
+  $("msg").value="";
+  advance();
+}
+function pick(mi,t){
+  const s=st.sc[st.cur], m=s.msgs[mi], step=SC[st.cur].steps[m.step], k=key(st.cur,mi);
+  openPicker=null;
+  if(!step.flag){
+    st.wrong++; m.fb=`이 말은 괜찮아요. ${esc(step.why)}`; m.fbc="bad";
+  }else if(step.flag===t){
+    st.found[k]={ok:true,real:step.flag,fb:`정답! <b>${TYPES[t].nm}</b> 깃발이에요. ${esc(step.why)}`,fbc:"good"};
+  }else{
+    st.found[k]={ok:true,real:step.flag,fb:`깃발은 맞아요! 그런데 <b>${TYPES[t].nm}</b>보다 <b>${TYPES[step.flag].nm}</b>에 더 가까워요. ${esc(step.why)}`,fbc:"half"};
+  }
+  stats();renderLog();
+}
+$("log").addEventListener("click",e=>{
+  const b=e.target.closest("button"); if(!b) return;
+  if(b.dataset.flag!==undefined){const mi=+b.dataset.flag;openPicker=openPicker===mi?null:mi;renderLog();return;}
+  if(b.dataset.pick){pick(+b.dataset.mi,b.dataset.pick);return;}
+  if(b.dataset.cancel){openPicker=null;renderLog();return;}
+  const a=b.dataset.act, s=st.sc[st.cur];
+  if(a==="reveal"){s.reveal=true;renderLog();}
+  if(a==="safe"){s.safe=true;renderLog();}
+  if(a==="next"){go(st.cur+1);}
+  if(a==="sum"){summary();}
+});
+$("replies").addEventListener("click",e=>{const b=e.target.closest("[data-say]");if(b)say(b.dataset.say);});
+$("form").addEventListener("submit",e=>{e.preventDefault();say($("msg").value);});
+$("scChips").addEventListener("click",e=>{const b=e.target.closest("[data-i]");if(b)go(+b.dataset.i);});
+function go(i){
+  st.cur=i;openPicker=null;busy=false;renderChips();
+  const s=st.sc[i];
+  if(!s.msgs.length&&!s.ended){renderLog();advance();} else renderLog();
+}
+function summary(){
+  const byT={};ORDER.forEach(k=>byT[k]=[]);
+  SC.forEach((sc,si)=>st.sc[si].msgs.forEach((m,mi)=>{const f=st.found[key(si,mi)];if(!m.me&&f&&f.ok)byT[f.real].push(sc.steps[m.step].ai);}));
+  const found=Object.values(st.found).filter(v=>v.ok).length;
+  $("log").innerHTML=`<div class="sys">네 장의 대화 기록 카드에서 깃발 ${TOTAL}개 중 ${found}개를 찾았어요.</div>`+
+   ORDER.map(k=>`<div class="safecard" style="background:var(--paper);border-color:var(--line)"><b>${TYPES[k].nm}</b> <span style="color:var(--muted);font-size:14px">${TYPES[k].ds}</span><ul>${byT[k].length?byT[k].map(x=>`<li>${esc(x)}</li>`).join(""):"<li>아직 찾지 못했어요.</li>"}</ul></div>`).join("")+
+   `<div class="sys">탐정 수첩 아래에 오늘 배운 점을 한 문장으로 써 보세요. 다음 시간에는 이 신호를 막는 B.F.F. 약속을 만들어요.</div><div class="endbox"><button class="btn" type="button" data-i2="0">카드 1로 돌아가기</button></div>`;
+  $("replies").innerHTML="";$("msg").disabled=true;$("sendBtn").disabled=true;
+  $("log").scrollTop=0;
+}
+$("log").addEventListener("click",e=>{const b=e.target.closest("[data-i2]");if(b)go(0);});
+
+// ---------- 2차시 ----------
+let sitCur=0;
+function renderSit(){
+  $("sitChips").innerHTML=SIT.map((s,i)=>`<button class="chip${st.prac[i]?" done":""}" type="button" data-s="${i}" aria-pressed="${i===sitCur}"><span class="n">${i+1}</span>상황 카드 ${i+1}</button>`).join("");
+  const s=SIT[sitCur], p=st.prac[sitCur]||{};
+  $("sitBox").innerHTML=`<p class="ttl">${esc(s.ttl)}</p><p class="ctx">${esc(s.ctx)}</p>
+  <div class="row ai" style="margin-bottom:12px"><div class="avatar" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 26 26"><rect x="3" y="6" width="20" height="15" rx="7" fill="#ffffff"/><circle cx="9.5" cy="13.5" r="2" fill="#24344d"/><circle cx="16.5" cy="13.5" r="2" fill="#24344d"/></svg></div><div class="bubble">${esc(s.ai)}</div></div>
+  <p style="margin:0 0 6px;font-family:var(--display);font-size:17px">1. 어떤 약속을 쓸까요?</p>
+  <div class="promises">${["b","f","face"].map(k=>`<div class="promise"><input type="radio" name="pr" id="pr-${k}" value="${k}"${p.choice===k?" checked":""}><label for="pr-${k}"><div class="L">${PROM[k].L}</div><div class="E">${PROM[k].E}</div><div class="K">${PROM[k].K}</div></label></div>`).join("")}</div>
+  <p style="margin:12px 0 6px;font-family:var(--display);font-size:17px"><label for="ansTxt">2. 모모에게 뭐라고 대답할까요?</label></p>
+  <textarea id="ansTxt" maxlength="120" placeholder="내가 할 말을 써 보세요.">${esc(p.text||"")}</textarea>
+  <div class="endbox" style="justify-content:flex-start;margin-top:10px"><button class="btn primary" type="button" id="chkBtn">확인하기</button><button class="btn" type="button" id="modelBtn">모범 대답 보기</button></div>
+  <div id="resBox" style="margin-top:12px">${p.res||""}</div>`;
+}
+function detect(t){return ["b","f","face"].filter(k=>KW[k].some(w=>t.includes(w)));}
+function check(){
+  const s=SIT[sitCur];
+  const c=(document.querySelector('input[name="pr"]:checked')||{}).value;
+  const t=$("ansTxt").value.trim();
+  if(!c||!t){$("resBox").innerHTML=`<div class="result half"><p>약속을 하나 고르고, 대답을 써야 확인할 수 있어요.</p></div>`;return;}
+  if(hasPII(t)) toast("<b>잠깐! Boundary 약속</b><br>대답에 진짜 학교, 주소, 이름 같은 개인정보가 들어가지 않았는지 살펴보세요.",6000);
+  const ok = c===s.ans || s.alt.includes(c);
+  const det = detect(t);
+  const nm = k=>PROM[k].L+" ("+PROM[k].E+")";
+  let h=`<div class="result ${ok?"good":"half"}"><h3>${ok?"알맞은 약속을 골랐어요!":"다른 약속이 더 잘 맞아요"}</h3>`;
+  h+= ok ? `<p>${nm(c)} 약속이 이 상황에 잘 맞아요.${c!==s.ans?" "+nm(s.ans)+" 약속과 함께 쓰면 더 좋아요.":""}</p>` : `<p>이 상황에는 ${nm(s.ans)} 약속이 가장 잘 맞아요. ${esc(s.tip)}</p>`;
+  h+= det.length ? `<p>내 대답에서 찾은 약속: ${det.map(nm).join(", ")}</p>` : `<p>내 대답에 약속이 잘 드러나지 않아요. 무엇을 하겠다고 말하면 더 분명해져요. 예) 확인해 볼게, 엄마한테 말할게, 보내지 않을래</p>`;
+  h+=`<p style="color:var(--muted);font-size:14.5px">${esc(s.tip)}</p></div>`;
+  st.prac[sitCur]={choice:c,text:t,res:h,ok};
+  $("resBox").innerHTML=h;
+  pracLog();renderSitChips();
+}
+function renderSitChips(){document.querySelectorAll("#sitChips .chip").forEach((b,i)=>b.classList.toggle("done",!!st.prac[i]));}
+function pracLog(){
+  const e=Object.entries(st.prac);
+  $("pracLog").innerHTML = e.length ? e.map(([i,p])=>`<div>상황 카드 ${+i+1}: ${PROM[p.choice].L} (${PROM[p.choice].E}) ${p.ok?"알맞음":"다시 생각"}</div>`).join("") : "아직 확인한 카드가 없어요.";
+}
+$("sitChips").addEventListener("click",e=>{const b=e.target.closest("[data-s]");if(!b)return;sitCur=+b.dataset.s;renderSit();});
+$("sitBox").addEventListener("click",e=>{
+  if(e.target.id==="chkBtn") check();
+  if(e.target.id==="modelBtn"){const s=SIT[sitCur];const box=$("resBox");box.innerHTML=(st.prac[sitCur]&&st.prac[sitCur].res||"")+`<div class="safecard" style="margin-top:8px"><b>모범 대답 (${PROM[s.ans].L} · ${PROM[s.ans].E})</b><p style="margin:4px 0 0">${esc(s.model)}</p><p style="margin:4px 0 0;font-size:14px;color:var(--muted)">내 말이 달라도 약속과 까닭이 맞으면 좋은 대답이에요.</p></div>`;}
+});
+
+// ---------- 탭, 초기화 ----------
+const TABS=["detect","practice","guide"];
+document.querySelector(".tabs").addEventListener("click",e=>{
+  const b=e.target.closest(".tab");if(!b)return;
+  const id=b.id.replace("tab-","");
+  TABS.forEach(t=>{$("tab-"+t).setAttribute("aria-selected",t===id);$("view-"+t).hidden=t!==id;});
+});
+function resetUI(){
+  $("resetArea").innerHTML=`<button class="btn" id="resetBtn" type="button">전체 초기화</button>`;
+}
+$("resetArea").addEventListener("click",e=>{
+  if(e.target.id==="resetBtn"){$("resetArea").innerHTML=`<span style="margin-right:8px">정말 모두 지울까요?</span><button class="btn primary" type="button" id="resetYes">지우기</button> <button class="btn" type="button" id="resetNo">취소</button>`;}
+  if(e.target.id==="resetNo") resetUI();
+  if(e.target.id==="resetYes"){fresh();sitCur=0;$("oneLine").value="";resetUI();renderSit();pracLog();stats();go(0);toast("<b>초기화했어요.</b> 다음 모둠이 처음부터 시작할 수 있어요.",3000);}
+});
+
+stats();renderSit();go(0);
+})();
+</script>
+
+</body></html>
